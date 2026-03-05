@@ -129,6 +129,9 @@ elif st.session_state.page == "module_browser":
                     "replace": "2.5",
                     "final": "1"
                 }
+            # Calculate overall MTE as sum of all times
+            total_time = sum(float(v["time"]) for v in st.session_state.results.values())
+            st.session_state.results["overall"] = f"{total_time}"
             st.success("MTE Calculated")
 
     if col2.button("Back to Home"):
@@ -144,17 +147,18 @@ elif st.session_state.page == "module_browser":
         st.write("---")
         st.subheader("Result")
         for action_name, values in st.session_state.results.items():
+            # Skip overall row in this loop
+            if action_name == "overall":
+                continue
             st.write(f"**{action_name}**")
             cols = st.columns([2, 2, 1])
             cols[0].write("Time")
             cols[0].text(values["time"])
-            # Button for popup
             if cols[1].button("Time Split", key=f"time_split_{action_name}"):
                 st.session_state.show_details[action_name] = True
             cols[2].write("Manpower")
             cols[2].text(values["manpower"])
 
-            # ---------- POPUP ----------
             if st.session_state.show_details.get(action_name):
                 st.info(
                     f"""
@@ -163,3 +167,8 @@ elif st.session_state.page == "module_browser":
 3. Finalisation : {values['final']}
 """
                 )
+        # ---------- OVERALL MTE ----------
+        if "overall" in st.session_state.results:
+            st.write("---")
+            st.write("Overall MTE")
+            st.text(st.session_state.results["overall"])
