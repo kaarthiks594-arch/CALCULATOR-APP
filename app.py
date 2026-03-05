@@ -137,7 +137,6 @@ elif st.session_state.page == "module_browser":
             st.success("MTE Calculated")
 
     if col2.button("Back to Home"):
-        # Reset selections and results
         st.session_state.selected_modules = []
         st.session_state.selected_actions = []
         st.session_state.results = {}
@@ -152,14 +151,15 @@ elif st.session_state.page == "module_browser":
         st.text(f"KEN Number: {st.session_state.ken_number or 'N/A'}")
         st.text(f"Electrification: {electrification}")
         st.write("Selected Actions:", ", ".join(st.session_state.selected_actions))
-        st.text(f"Time: {st.session_state.results['time']}")
-        st.text(f"Manpower: {st.session_state.results['manpower']}")
-        st.success(f"Overall MTE: {st.session_state.results['overall']}")
 
-        # ---------- SHOW DETAILS ----------
-        if st.button("Show Details"):
+        # ---------- TIME WITH VIEW BUTTON ----------
+        st.write("Time")
+        col1, col2 = st.columns([4, 1])
+        col1.text(st.session_state.results["time"])
+        if col2.button("View", key="time_view"):
             st.session_state.show_details = True
 
+        # Show popup for preparation/replacement/finalization
         if st.session_state.show_details:
             st.info(
                 f"""
@@ -168,3 +168,8 @@ Replacement : {st.session_state.results['replace']}
 Finalisation : {st.session_state.results['final']}
 """
             )
+
+        # ---------- MANPOWER AND OVERALL ----------
+        st.write("Manpower")
+        st.text(st.session_state.results["manpower"])
+        st.success(f"Overall MTE: {st.session_state.results['overall']}")
