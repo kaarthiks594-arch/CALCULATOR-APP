@@ -1,150 +1,105 @@
 import streamlit as st
 
-st.set_page_config(page_title="MTE Calculator", layout="wide")
+st.set_page_config(page_title="MTE Calculator", layout="centered")
 
-# ---------------- SESSION STATE ----------------
+# ---------- SESSION STATE ----------
 if "page" not in st.session_state:
-    st.session_state.page = "home"
+    st.session_state.page = "menu"
+
+if "ken_number" not in st.session_state:
+    st.session_state.ken_number = ""
+
+if "electrification" not in st.session_state:
+    st.session_state.electrification = None
 
 if "selected_modules" not in st.session_state:
     st.session_state.selected_modules = []
 
-if "replacement_actions" not in st.session_state:
-    st.session_state.replacement_actions = {}
+if "selected_actions" not in st.session_state:
+    st.session_state.selected_actions = []
 
-# ---------------- DATA ----------------
-modules = [
-    "Brake System",
-    "Traction Motor",
-    "Pantograph",
-    "Compressor",
-    "Transformer",
-    "Cooling System",
-    "Control Electronics",
+if "results" not in st.session_state:
+    st.session_state.results = {}
+
+# ---------- MODULE LIST ----------
+MODULES = [f"Module {i}" for i in range(1, 13)]
+
+REPLACEMENT_ACTIONS = [
+    "Replace Component A",
+    "Replace Component B",
+    "Replace Component C",
+    "Repair Module",
+    "Upgrade System",
+    "Install New Part",
+    "Remove Old Part",
+    "Test and Verify",
 ]
 
-replacement_actions = {
-    "Brake System": [
-        "Replace Brake Pad",
-        "Adjust Brake Cylinder",
-        "Inspect Brake Pipe",
-    ],
-    "Traction Motor": [
-        "Motor Overhaul",
-        "Bearing Replacement",
-        "Rotor Inspection",
-    ],
-    "Pantograph": [
-        "Carbon Strip Replacement",
-        "Spring Adjustment",
-        "Arm Inspection",
-    ],
-    "Compressor": [
-        "Compressor Seal Replacement",
-        "Air Filter Change",
-        "Valve Inspection",
-    ],
-    "Transformer": [
-        "Oil Replacement",
-        "Cooling Fan Check",
-        "Insulation Test",
-    ],
-    "Cooling System": [
-        "Coolant Replacement",
-        "Pump Inspection",
-        "Radiator Cleaning",
-    ],
-    "Control Electronics": [
-        "PCB Replacement",
-        "Firmware Update",
-        "Connector Inspection",
-    ],
-}
+# ---------- HEADER ----------
+st.markdown(
+"""
+<div style='background:#2563eb;padding:15px;border-radius:10px'>
+<h2 style='color:white;text-align:center'>MTE Calculator</h2>
+</div>
+""",
+unsafe_allow_html=True
+)
 
-# ---------------- HEADER ----------------
-st.title("MTE Calculator")
+st.write("")
 
-# =================================================
-# HOME PAGE
-# =================================================
-if st.session_state.page == "home":
+# ---------- MENU PAGE ----------
+if st.session_state.page == "menu":
+    st.subheader("Choose how you want to proceed")
+    col1, col2 = st.columns(2)
 
-    mode = st.radio(
-        "Choose how you want to proceed",
-        ["Search by KEN", "Browse Modules"],
-        horizontal=True
-    )
+    if col1.button("Search by KEN"):
+        st.session_state.page = "search"
+        st.rerun()
 
-    # ---------------- KEN SEARCH ----------------
-    if mode == "Search by KEN":
+    if col2.button("Browse Modules"):
+        st.session_state.page = "browse"
+        st.rerun()
 
-        ken = st.text_input("Enter KEN Number")
+# ---------- PAGE 1 : KEN SEARCH ----------
+elif st.session_state.page == "search":
+    st.subheader("KEN Search")
+    ken = st.text_input("Enter KEN Number")
 
-        if st.button("Search"):
-
-            if ken.strip() == "":
-                st.error("Please enter a KEN number")
-            else:
-                st.session_state.ken = ken
-                st.session_state.page = "modules"
-                st.rerun()
-
-    # ---------------- DIRECT MODULE BROWSE ----------------
-    else:
-
-        if st.button("Open Modules"):
-            st.session_state.page = "modules"
+    if st.button("Search"):
+        if ken.strip() == "":
+            st.error("Please enter a KEN number")
+        else:
+            st.session_state.ken_number = ken
+            st.session_state.electrification = f"AC 25kV | Zone: Central | Section: {ken}"
+            st.session_state.page = "details"
             st.rerun()
 
-# =================================================
-# MODULE PAGE
-# =================================================
-elif st.session_state.page == "modules":
+# ---------- PAGE 2 : BROWSE MODULES ----------
+elif st.session_state.page == "browse":
+    st.subheader("Browse Modules")
 
-    st.subheader("Select Modules")
+    cols = st.columns(3)
+    for i, module in enumerate(MODULES):
+        col = cols[i % 3]
+        selected = module in st.session_state.selected_modules
 
-    selected = st.multiselect(
-        "Choose modules",
-        modules,
-        default=st.session_state.selected_modules
-    )
+        if col.button(module, key=module, use_container_width=True):
+            if selected:
+                st.session_state.selected_modules.remove(module)
+            else:
+                st.session_state.selected_modules.append(module)
 
-    st.session_state.selected_modules = selected
+    # Show selected modules
+    if st.session_state.selected_modules:
+        st.write("Selected Modules")
+        cols = st.columns(len(st.session_state.selected_modules))
+        for i, module in enumerate(st.session_state.selected_modules):
+            with cols[i]:
+                st.info(module)
 
-    st.divider()
-
-    # ---------------- SHOW SELECTED MODULES ----------------
-    if selected:
-
-        st.subheader("Selected Modules")
-
-        for module in selected:
-
-            st.markdown(f"### {module}")
-
-            action = st.selectbox(
-                f"Replacement Action for {module}",
-                replacement_actions[module],
-                key=f"action_{module}"
-            )
-
-            st.session_state.replacement_actions[module] = action
-
-    else:
-        st.info("Select modules to see replacement actions.")
-
-    st.divider()
-
-    # ---------------- SUMMARY ----------------
-    if st.session_state.replacement_actions:
-
-        st.subheader("Selected Replacement Actions")
-
-        for module, action in st.session_state.replacement_actions.items():
-            st.write(f"**{module}** → {action}")
-
-    st.divider()
-
-    if st.button("Back to Home"):
-        st.session_state.page = "home"
-        st.rerun()
+    if st.button("Proceed to Replacement Actions"):
+        if len(st.session_state.selected_modules) == 0:
+            st.warning("Select at least one module to proceed")
+        else:
+            st.session_state.page = "details"
+            st.rerun()
