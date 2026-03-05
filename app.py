@@ -132,6 +132,7 @@ elif st.session_state.page == "module_browser":
             st.session_state.results = {
                 "time": "4.5",
                 "manpower": "3",
+                "overall": "13.5",
                 "prep": "1",
                 "replace": "2.5",
                 "final": "1"
@@ -175,3 +176,7 @@ elif st.session_state.page == "module_browser":
         # ---------- MANPOWER ----------
         st.write("Manpower")
         st.text(st.session_state.results["manpower"])
+
+        # ---------- OVERALL MTE ----------
+        st.write("Overall MTE")
+        st.text(st.session_state.results["overall"])
