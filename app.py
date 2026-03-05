@@ -86,13 +86,11 @@ elif st.session_state.page == "ken_search":
 
 # ---------- MODULE BROWSER PAGE ----------
 elif st.session_state.page == "module_browser":
-    st.subheader("Electrification")
+
     # ---------- CONDITIONAL ELECTRIFICATION ----------
-    if st.session_state.ken_number.strip() != "":
-        electrification = st.session_state.electrification
-    else:
-        electrification = "N/A"
-    st.info(electrification)
+    if st.session_state.ken_number.strip():
+        st.subheader("Electrification")
+        st.info(st.session_state.electrification)
 
     # ---------- MODULE GRID ----------
     st.subheader("Modules")
@@ -153,7 +151,8 @@ elif st.session_state.page == "module_browser":
         st.write("---")
         st.subheader("Result")
         st.text(f"KEN Number: {st.session_state.ken_number or 'N/A'}")
-        st.text(f"Electrification: {electrification}")
+        if st.session_state.ken_number.strip():
+            st.text(f"Electrification: {st.session_state.electrification}")
         st.write("Selected Actions:", ", ".join(st.session_state.selected_actions))
 
         # ---------- TIME WITH VIEW BUTTON ----------
