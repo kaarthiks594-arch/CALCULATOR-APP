@@ -6,19 +6,14 @@ st.set_page_config(page_title="MTE Calculator", layout="centered")
 # ---------- SESSION STATE ----------
 if "page" not in st.session_state:
     st.session_state.page = "home"
-
 if "ken_number" not in st.session_state:
     st.session_state.ken_number = ""
-
 if "selected_modules" not in st.session_state:
     st.session_state.selected_modules = []
-
 if "selected_actions" not in st.session_state:
     st.session_state.selected_actions = []
-
 if "results" not in st.session_state:
     st.session_state.results = {}
-
 if "show_details" not in st.session_state:
     st.session_state.show_details = {}
 
@@ -57,63 +52,59 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.write("")
 
 # ---------- HOME PAGE ----------
 if st.session_state.page == "home":
     st.subheader("Choose how you want to proceed")
-    col1, col2 = st.columns(2)
-
-    if col1.button("Search by KEN"):
+    if st.button("Search by KEN"):
         st.session_state.page = "ken_search"
-        st.session_state.show_details = {}
         st.rerun()
-
-    if col2.button("Browse Modules"):
+    if st.button("Browse Modules"):
         st.session_state.page = "module_browser"
-        st.session_state.show_details = {}
         st.session_state.ken_number = ""  # Clear KEN so Electrification does not appear
         st.rerun()
 
-# ---------- KEN SEARCH PAGE ----------
+# ---------- KEN SEARCH ----------
 elif st.session_state.page == "ken_search":
     st.subheader("KEN Search")
     ken = st.text_input("Enter KEN Number")
     if st.button("Search"):
-        if ken.strip() == "":
-            st.error("Please enter a KEN number")
-        else:
+        if ken.strip():
             st.session_state.ken_number = ken
             st.session_state.page = "module_browser"
-            st.session_state.show_details = {}
             st.rerun()
+        else:
+            st.error("Please enter a KEN number")
     if st.button("Back"):
         st.session_state.page = "home"
-        st.session_state.show_details = {}
         st.rerun()
 
-# ---------- MODULE BROWSER PAGE ----------
+# ---------- MODULE BROWSER ----------
 elif st.session_state.page == "module_browser":
 
-    # ---------- CONDITIONAL ELECTRIFICATION ----------
+    # ---------- ELECTRIFICATION ----------
     if st.session_state.ken_number.strip():
         st.subheader("Electrification")
-        st.info("LCS")  # Simplified Electrification text
+        st.info("LCS")
 
-    # ---------- MODULE GRID ----------
+    # ---------- MODULE GRID (3-Column Layout) ----------
     st.subheader("Modules")
     cols = st.columns(3)
     for i, module in enumerate(MODULES):
         col = cols[i % 3]
         selected = module in st.session_state.selected_modules
-        if col.button(module, key=module):
+        button_label = f"✅ {module}" if selected else module
+        if col.button(button_label, key=f"mod_{module}"):
             if selected:
                 st.session_state.selected_modules.remove(module)
             else:
                 st.session_state.selected_modules.append(module)
 
+    # Show selected modules below grid
     if st.session_state.selected_modules:
-        st.write("Selected Modules:", ", ".join(st.session_state.selected_modules))
+        st.markdown("**Selected Modules:**")
+        for m in st.session_state.selected_modules:
+            st.text(f"- {m}")
 
     # ---------- REPLACEMENT ACTIONS ----------
     st.subheader("Replacement Actions")
@@ -123,15 +114,13 @@ elif st.session_state.page == "module_browser":
     else:
         st.warning("Select at least one module first")
 
-    # ---------- ACTION BUTTONS ----------
-    col1, col2 = st.columns(2)
-    if col1.button("Calculate MTE"):
+    # ---------- CALCULATE MTE ----------
+    if st.button("Calculate MTE"):
         if not st.session_state.selected_modules:
             st.error("Select at least one module")
         elif not st.session_state.selected_actions:
             st.error("Select at least one action")
         else:
-            # Generate results per action
             st.session_state.results = {}
             for action in st.session_state.selected_actions:
                 st.session_state.results[action] = {
@@ -141,46 +130,33 @@ elif st.session_state.page == "module_browser":
                     "replace": "2.5",
                     "final": "1"
                 }
-            # Calculate overall MTE as sum of all times
+            # Overall MTE
             total_time = sum(float(v["time"]) for k, v in st.session_state.results.items())
             st.session_state.results["overall"] = f"{total_time}"
             st.success("MTE Calculated")
 
-    if col2.button("Back to Home"):
+    if st.button("Back to Home"):
         st.session_state.selected_modules = []
         st.session_state.selected_actions = []
         st.session_state.results = {}
-        st.session_state.show_details = {}
         st.session_state.page = "home"
         st.rerun()
 
-    # ---------- SHOW RESULTS IN VERTICAL ----------
+    # ---------- RESULTS (VERTICAL MOBILE-FRIENDLY CARDS) ----------
     if st.session_state.results:
         st.write("---")
         st.subheader("Result")
         for action_name, values in st.session_state.results.items():
             if action_name == "overall":
                 continue
-            st.write(f"**{action_name}**")
-            cols = st.columns([2, 2, 1])
-            cols[0].write("Time")
-            cols[0].text(values["time"])
-            if cols[1].button("Time Split", key=f"time_split_{action_name}"):
-                st.session_state.show_details[action_name] = True
-            cols[2].write("Manpower")
-            cols[2].text(values["manpower"])
-
-            if st.session_state.show_details.get(action_name):
-                st.info(
-                    f"""
-1. Preparation : {values['prep']}
-2. Replacement : {values['replace']}
-3. Finalisation : {values['final']}
-"""
-                )
-
-        # ---------- OVERALL MTE ----------
-        if "overall" in st.session_state.results:
-            st.write("---")
-            st.write("Overall MTE")
-            st.text(st.session_state.results["overall"])
+            with st.expander(f"{action_name}"):
+                st.write(f"**Time:** {values['time']}")
+                st.write(f"**Manpower:** {values['manpower']}")
+                with st.expander("Time Split"):
+                    st.write(f"1. Preparation : {values['prep']}")
+                    st.write(f"2. Replacement : {values['replace']}")
+                    st.write(f"3. Finalisation : {values['final']}")
+        # Overall MTE
+        st.write("---")
+        st.write("**Overall MTE:**")
+        st.text(st.session_state.results["overall"])
