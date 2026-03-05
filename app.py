@@ -159,13 +159,13 @@ elif st.session_state.page == "module_browser":
         if col2.button("View", key="time_view"):
             st.session_state.show_details = True
 
-        # Show popup for preparation/replacement/finalization
+        # ---------- ORDERED POPUP ----------
         if st.session_state.show_details:
             st.info(
                 f"""
-Preparation : {st.session_state.results['prep']}
-Replacement : {st.session_state.results['replace']}
-Finalisation : {st.session_state.results['final']}
+1. Preparation : {st.session_state.results['prep']}
+2. Replacement : {st.session_state.results['replace']}
+3. Finalisation : {st.session_state.results['final']}
 """
             )
 
