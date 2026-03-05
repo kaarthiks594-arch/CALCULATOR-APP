@@ -72,7 +72,7 @@ if st.session_state.page == "home":
     if col2.button("Browse Modules"):
         st.session_state.page = "module_browser"
         st.session_state.show_details = {}
-        st.session_state.ken_number = ""  # clear KEN so Electrification does not appear
+        st.session_state.ken_number = ""  # Clear KEN so Electrification does not appear
         st.rerun()
 
 # ---------- KEN SEARCH PAGE ----------
@@ -97,8 +97,8 @@ elif st.session_state.page == "module_browser":
 
     # ---------- CONDITIONAL ELECTRIFICATION ----------
     if st.session_state.ken_number.strip():
-    st.subheader("Electrification")
-    st.info("LCS")
+        st.subheader("Electrification")
+        st.info("LCS")  # Simplified Electrification text
 
     # ---------- MODULE GRID ----------
     st.subheader("Modules")
