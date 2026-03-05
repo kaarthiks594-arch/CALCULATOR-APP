@@ -23,7 +23,7 @@ if "results" not in st.session_state:
     st.session_state.results = {}
 
 if "show_details" not in st.session_state:
-    st.session_state.show_details = False
+    st.session_state.show_details = {}
 
 # ---------- MODULES & ACTIONS ----------
 MODULES = [f"Module {i}" for i in range(1, 13)]
@@ -53,22 +53,19 @@ st.write("")
 if st.session_state.page == "home":
     st.subheader("Choose how you want to proceed")
     col1, col2 = st.columns(2)
-
     if col1.button("Search by KEN"):
         st.session_state.page = "ken_search"
-        st.session_state.show_details = False
+        st.session_state.show_details = {}
         st.rerun()
-
     if col2.button("Browse Modules"):
         st.session_state.page = "module_browser"
-        st.session_state.show_details = False
+        st.session_state.show_details = {}
         st.rerun()
 
 # ---------- KEN SEARCH PAGE ----------
 elif st.session_state.page == "ken_search":
     st.subheader("KEN Search")
     ken = st.text_input("Enter KEN Number")
-
     if st.button("Search"):
         if ken.strip() == "":
             st.error("Please enter a KEN number")
@@ -76,12 +73,11 @@ elif st.session_state.page == "ken_search":
             st.session_state.ken_number = ken
             st.session_state.electrification = f"AC 25kV | Zone: Central | Section: {ken}"
             st.session_state.page = "module_browser"
-            st.session_state.show_details = False
+            st.session_state.show_details = {}
             st.rerun()
-
     if st.button("Back"):
         st.session_state.page = "home"
-        st.session_state.show_details = False
+        st.session_state.show_details = {}
         st.rerun()
 
 # ---------- MODULE BROWSER PAGE ----------
@@ -115,67 +111,55 @@ elif st.session_state.page == "module_browser":
     else:
         st.warning("Select at least one module first")
 
-    if st.session_state.selected_actions:
-        st.write("Selected Actions:", ", ".join(st.session_state.selected_actions))
-
     # ---------- ACTION BUTTONS ----------
     col1, col2 = st.columns(2)
-
     if col1.button("Calculate MTE"):
         if not st.session_state.selected_modules:
             st.error("Select at least one module")
         elif not st.session_state.selected_actions:
             st.error("Select at least one action")
         else:
-            st.session_state.results = {
-                "time": "4.5",
-                "manpower": "3",
-                "overall": "13.5",
-                "prep": "1",
-                "replace": "2.5",
-                "final": "1"
-            }
-            st.session_state.show_details = False
+            # Generate results per action
+            st.session_state.results = {}
+            for action in st.session_state.selected_actions:
+                st.session_state.results[action] = {
+                    "time": "4.5",
+                    "manpower": "3",
+                    "prep": "1",
+                    "replace": "2.5",
+                    "final": "1"
+                }
             st.success("MTE Calculated")
 
     if col2.button("Back to Home"):
         st.session_state.selected_modules = []
         st.session_state.selected_actions = []
         st.session_state.results = {}
-        st.session_state.show_details = False
+        st.session_state.show_details = {}
         st.session_state.page = "home"
         st.rerun()
 
-    # ---------- SHOW RESULTS ----------
+    # ---------- SHOW RESULTS IN VERTICAL ----------
     if st.session_state.results:
         st.write("---")
         st.subheader("Result")
-        st.text(f"KEN Number: {st.session_state.ken_number or 'N/A'}")
-        if st.session_state.ken_number.strip():
-            st.text(f"Electrification: {st.session_state.electrification}")
-        st.write("Selected Actions:", ", ".join(st.session_state.selected_actions))
+        for action_name, values in st.session_state.results.items():
+            st.write(f"**{action_name}**")
+            cols = st.columns([2, 2, 1])
+            cols[0].write("Time")
+            cols[0].text(values["time"])
+            # Button for popup
+            if cols[1].button("Time Split", key=f"time_split_{action_name}"):
+                st.session_state.show_details[action_name] = True
+            cols[2].write("Manpower")
+            cols[2].text(values["manpower"])
 
-        # ---------- TIME WITH VIEW BUTTON ----------
-        st.write("Time")
-        col1, col2 = st.columns([4, 1])
-        col1.text(st.session_state.results["time"])
-        if col2.button("View", key="time_view"):
-            st.session_state.show_details = True
-
-        # ---------- ORDERED POPUP ----------
-        if st.session_state.show_details:
-            st.info(
-                f"""
-1. Preparation : {st.session_state.results['prep']}
-2. Replacement : {st.session_state.results['replace']}
-3. Finalisation : {st.session_state.results['final']}
+            # ---------- POPUP ----------
+            if st.session_state.show_details.get(action_name):
+                st.info(
+                    f"""
+1. Preparation : {values['prep']}
+2. Replacement : {values['replace']}
+3. Finalisation : {values['final']}
 """
-            )
-
-        # ---------- MANPOWER ----------
-        st.write("Manpower")
-        st.text(st.session_state.results["manpower"])
-
-        # ---------- OVERALL MTE ----------
-        st.write("Overall MTE")
-        st.text(st.session_state.results["overall"])
+                )
