@@ -1,10 +1,11 @@
 import streamlit as st
 
+# ---------- PAGE CONFIG ----------
 st.set_page_config(page_title="MTE Calculator", layout="centered")
 
 # ---------- SESSION STATE ----------
 if "page" not in st.session_state:
-    st.session_state.page = "menu"
+    st.session_state.page = "home"
 
 if "ken_number" not in st.session_state:
     st.session_state.ken_number = ""
@@ -21,9 +22,8 @@ if "selected_actions" not in st.session_state:
 if "results" not in st.session_state:
     st.session_state.results = {}
 
-# ---------- MODULE LIST ----------
+# ---------- MODULES & ACTIONS ----------
 MODULES = [f"Module {i}" for i in range(1, 13)]
-
 REPLACEMENT_ACTIONS = [
     "Replace Component A",
     "Replace Component B",
@@ -37,31 +37,32 @@ REPLACEMENT_ACTIONS = [
 
 # ---------- HEADER ----------
 st.markdown(
-"""
-<div style='background:#2563eb;padding:15px;border-radius:10px'>
-<h2 style='color:white;text-align:center'>MTE Calculator</h2>
-</div>
-""",
-unsafe_allow_html=True
+    """
+    <div style='background:#2563eb;padding:15px;border-radius:10px'>
+    <h2 style='color:white;text-align:center'>MTE Calculator</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
-
 st.write("")
 
-# ---------- MENU PAGE ----------
-if st.session_state.page == "menu":
+# ---------- HOME PAGE ----------
+if st.session_state.page == "home":
+
     st.subheader("Choose how you want to proceed")
     col1, col2 = st.columns(2)
 
     if col1.button("Search by KEN"):
-        st.session_state.page = "search"
+        st.session_state.page = "ken_search"
         st.rerun()
 
     if col2.button("Browse Modules"):
-        st.session_state.page = "browse"
+        st.session_state.page = "module_browser"
         st.rerun()
 
-# ---------- PAGE 1 : KEN SEARCH ----------
-elif st.session_state.page == "search":
+# ---------- KEN SEARCH PAGE ----------
+elif st.session_state.page == "ken_search":
+
     st.subheader("KEN Search")
     ken = st.text_input("Enter KEN Number")
 
@@ -71,35 +72,88 @@ elif st.session_state.page == "search":
         else:
             st.session_state.ken_number = ken
             st.session_state.electrification = f"AC 25kV | Zone: Central | Section: {ken}"
-            st.session_state.page = "details"
+            st.session_state.page = "module_browser"
             st.rerun()
 
-# ---------- PAGE 2 : BROWSE MODULES ----------
-elif st.session_state.page == "browse":
-    st.subheader("Browse Modules")
+    if st.button("Back"):
+        st.session_state.page = "home"
+        st.rerun()
 
+# ---------- MODULE BROWSER PAGE ----------
+elif st.session_state.page == "module_browser":
+
+    st.subheader("Electrification")
+    electrification = st.session_state.electrification or "N/A"
+    st.info(electrification)
+
+    # ---------- MODULE GRID ----------
+    st.subheader("Modules")
     cols = st.columns(3)
     for i, module in enumerate(MODULES):
         col = cols[i % 3]
         selected = module in st.session_state.selected_modules
-
-        if col.button(module, key=module, use_container_width=True):
+        if col.button(module, key=module):
             if selected:
                 st.session_state.selected_modules.remove(module)
             else:
                 st.session_state.selected_modules.append(module)
 
-    # Show selected modules
     if st.session_state.selected_modules:
-        st.write("Selected Modules")
-        cols = st.columns(len(st.session_state.selected_modules))
-        for i, module in enumerate(st.session_state.selected_modules):
-            with cols[i]:
-                st.info(module)
+        st.write("Selected Modules:", ", ".join(st.session_state.selected_modules))
 
-    if st.button("Proceed to Replacement Actions"):
-        if len(st.session_state.selected_modules) == 0:
-            st.warning("Select at least one module to proceed")
+    # ---------- REPLACEMENT ACTIONS ----------
+    st.subheader("Replacement Actions")
+    if st.session_state.selected_modules:
+        options = [f"{a} - {m}" for m in st.session_state.selected_modules for a in REPLACEMENT_ACTIONS]
+        st.session_state.selected_actions = st.multiselect("Select replacement actions", options)
+    else:
+        st.warning("Select at least one module first")
+
+    if st.session_state.selected_actions:
+        st.write("Selected Actions:", ", ".join(st.session_state.selected_actions))
+
+    # ---------- ACTION BUTTONS ----------
+    col1, col2 = st.columns(2)
+
+    if col1.button("Calculate MTE"):
+        if not st.session_state.selected_modules:
+            st.error("Select at least one module")
+        elif not st.session_state.selected_actions:
+            st.error("Select at least one action")
         else:
-            st.session_state.page = "details"
-            st.rerun()
+            st.session_state.results = {
+                "time": "4.5 hours",
+                "manpower": "3 persons",
+                "overall": "13.5 hours",
+                "prep": "1 hour",
+                "replace": "2.5 hours",
+                "final": "1 hour"
+            }
+            st.success("MTE Calculated")
+
+    if col2.button("Back to Home"):
+        # Reset optional selections but keep KEN info
+        st.session_state.selected_modules = []
+        st.session_state.selected_actions = []
+        st.session_state.results = {}
+        st.session_state.page = "home"
+        st.rerun()
+
+    # ---------- SHOW RESULTS ----------
+    if st.session_state.results:
+        st.write("---")
+        st.subheader("Result")
+        st.text(f"KEN Number: {st.session_state.ken_number or 'N/A'}")
+        st.text(f"Electrification: {electrification}")
+        st.write("Selected Actions:", ", ".join(st.session_state.selected_actions))
+        st.text(f"Time: {st.session_state.results['time']}")
+        st.text(f"Manpower: {st.session_state.results['manpower']}")
+        st.success(f"Overall MTE: {st.session_state.results['overall']}")
+        if st.button("Show Details"):
+            st.info(
+                f"""
+Preparation : {st.session_state.results['prep']}
+Replacement : {st.session_state.results['replace']}
+Finalisation : {st.session_state.results['final']}
+"""
+            )
