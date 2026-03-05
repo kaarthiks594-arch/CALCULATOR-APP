@@ -87,7 +87,11 @@ elif st.session_state.page == "ken_search":
 # ---------- MODULE BROWSER PAGE ----------
 elif st.session_state.page == "module_browser":
     st.subheader("Electrification")
-    electrification = st.session_state.electrification or "N/A"
+    # ---------- CONDITIONAL ELECTRIFICATION ----------
+    if st.session_state.ken_number.strip() != "":
+        electrification = st.session_state.electrification
+    else:
+        electrification = "N/A"
     st.info(electrification)
 
     # ---------- MODULE GRID ----------
