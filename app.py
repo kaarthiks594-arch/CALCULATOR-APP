@@ -10,9 +10,6 @@ if "page" not in st.session_state:
 if "ken_number" not in st.session_state:
     st.session_state.ken_number = ""
 
-if "electrification" not in st.session_state:
-    st.session_state.electrification = None
-
 if "selected_modules" not in st.session_state:
     st.session_state.selected_modules = []
 
@@ -71,7 +68,6 @@ elif st.session_state.page == "ken_search":
             st.error("Please enter a KEN number")
         else:
             st.session_state.ken_number = ken
-            st.session_state.electrification = f"AC 25kV | Zone: Central | Section: {ken}"
             st.session_state.page = "module_browser"
             st.session_state.show_details = {}
             st.rerun()
@@ -86,7 +82,7 @@ elif st.session_state.page == "module_browser":
     # ---------- CONDITIONAL ELECTRIFICATION ----------
     if st.session_state.ken_number.strip():
         st.subheader("Electrification")
-        st.info(st.session_state.electrification)
+        st.info(f"AC 25kV | Zone: Central | Section: {st.session_state.ken_number}")
 
     # ---------- MODULE GRID ----------
     st.subheader("Modules")
@@ -147,7 +143,6 @@ elif st.session_state.page == "module_browser":
         st.write("---")
         st.subheader("Result")
         for action_name, values in st.session_state.results.items():
-            # Skip overall row in this loop
             if action_name == "overall":
                 continue
             st.write(f"**{action_name}**")
@@ -167,6 +162,7 @@ elif st.session_state.page == "module_browser":
 3. Finalisation : {values['final']}
 """
                 )
+
         # ---------- OVERALL MTE ----------
         if "overall" in st.session_state.results:
             st.write("---")
