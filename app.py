@@ -50,13 +50,17 @@ st.write("")
 if st.session_state.page == "home":
     st.subheader("Choose how you want to proceed")
     col1, col2 = st.columns(2)
+
     if col1.button("Search by KEN"):
         st.session_state.page = "ken_search"
         st.session_state.show_details = {}
         st.rerun()
+
     if col2.button("Browse Modules"):
         st.session_state.page = "module_browser"
         st.session_state.show_details = {}
+        # CLEAR KEN number so electrification does not appear
+        st.session_state.ken_number = ""
         st.rerun()
 
 # ---------- KEN SEARCH PAGE ----------
