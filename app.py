@@ -97,8 +97,8 @@ elif st.session_state.page == "module_browser":
 
     # ---------- CONDITIONAL ELECTRIFICATION ----------
     if st.session_state.ken_number.strip():
-        st.subheader("Electrification")
-        st.info(f"AC 25kV | Zone: Central | Section: {st.session_state.ken_number}")
+    st.subheader("Electrification")
+    st.info("LCS")
 
     # ---------- MODULE GRID ----------
     st.subheader("Modules")
