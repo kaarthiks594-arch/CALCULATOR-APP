@@ -130,12 +130,11 @@ elif st.session_state.page == "module_browser":
             st.error("Select at least one action")
         else:
             st.session_state.results = {
-                "time": "4.5 hours",
-                "manpower": "3 persons",
-                "overall": "13.5 hours",
-                "prep": "1 hour",
-                "replace": "2.5 hours",
-                "final": "1 hour"
+                "time": "4.5",
+                "manpower": "3",
+                "prep": "1",
+                "replace": "2.5",
+                "final": "1"
             }
             st.session_state.show_details = False
             st.success("MTE Calculated")
@@ -173,7 +172,6 @@ elif st.session_state.page == "module_browser":
 """
             )
 
-        # ---------- MANPOWER AND OVERALL ----------
+        # ---------- MANPOWER ----------
         st.write("Manpower")
         st.text(st.session_state.results["manpower"])
-        st.success(f"Overall MTE: {st.session_state.results['overall']}")
