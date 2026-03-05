@@ -22,6 +22,9 @@ if "selected_actions" not in st.session_state:
 if "results" not in st.session_state:
     st.session_state.results = {}
 
+if "show_details" not in st.session_state:
+    st.session_state.show_details = False
+
 # ---------- MODULES & ACTIONS ----------
 MODULES = [f"Module {i}" for i in range(1, 13)]
 REPLACEMENT_ACTIONS = [
@@ -48,21 +51,21 @@ st.write("")
 
 # ---------- HOME PAGE ----------
 if st.session_state.page == "home":
-
     st.subheader("Choose how you want to proceed")
     col1, col2 = st.columns(2)
 
     if col1.button("Search by KEN"):
         st.session_state.page = "ken_search"
+        st.session_state.show_details = False
         st.rerun()
 
     if col2.button("Browse Modules"):
         st.session_state.page = "module_browser"
+        st.session_state.show_details = False
         st.rerun()
 
 # ---------- KEN SEARCH PAGE ----------
 elif st.session_state.page == "ken_search":
-
     st.subheader("KEN Search")
     ken = st.text_input("Enter KEN Number")
 
@@ -73,15 +76,16 @@ elif st.session_state.page == "ken_search":
             st.session_state.ken_number = ken
             st.session_state.electrification = f"AC 25kV | Zone: Central | Section: {ken}"
             st.session_state.page = "module_browser"
+            st.session_state.show_details = False
             st.rerun()
 
     if st.button("Back"):
         st.session_state.page = "home"
+        st.session_state.show_details = False
         st.rerun()
 
 # ---------- MODULE BROWSER PAGE ----------
 elif st.session_state.page == "module_browser":
-
     st.subheader("Electrification")
     electrification = st.session_state.electrification or "N/A"
     st.info(electrification)
@@ -129,13 +133,15 @@ elif st.session_state.page == "module_browser":
                 "replace": "2.5 hours",
                 "final": "1 hour"
             }
+            st.session_state.show_details = False
             st.success("MTE Calculated")
 
     if col2.button("Back to Home"):
-        # Reset optional selections but keep KEN info
+        # Reset selections and results
         st.session_state.selected_modules = []
         st.session_state.selected_actions = []
         st.session_state.results = {}
+        st.session_state.show_details = False
         st.session_state.page = "home"
         st.rerun()
 
@@ -149,7 +155,12 @@ elif st.session_state.page == "module_browser":
         st.text(f"Time: {st.session_state.results['time']}")
         st.text(f"Manpower: {st.session_state.results['manpower']}")
         st.success(f"Overall MTE: {st.session_state.results['overall']}")
+
+        # ---------- SHOW DETAILS ----------
         if st.button("Show Details"):
+            st.session_state.show_details = True
+
+        if st.session_state.show_details:
             st.info(
                 f"""
 Preparation : {st.session_state.results['prep']}
