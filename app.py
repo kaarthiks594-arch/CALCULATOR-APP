@@ -23,7 +23,20 @@ if "show_details" not in st.session_state:
     st.session_state.show_details = {}
 
 # ---------- MODULES & ACTIONS ----------
-MODULES = [f"Module {i}" for i in range(1, 13)]
+MODULES = [
+    "Machines",
+    "Ropes and Compensation",
+    "Counterweights",
+    "Electrification",
+    "Drive Systems",
+    "Shaft Equipments",
+    "Guide Shoe",
+    "Peripheral Devices",
+    "Car",
+    "Car Slings",
+    "Door and Facings"
+]
+
 REPLACEMENT_ACTIONS = [
     "Replace Component A",
     "Replace Component B",
@@ -59,8 +72,7 @@ if st.session_state.page == "home":
     if col2.button("Browse Modules"):
         st.session_state.page = "module_browser"
         st.session_state.show_details = {}
-        # CLEAR KEN number so electrification does not appear
-        st.session_state.ken_number = ""
+        st.session_state.ken_number = ""  # clear KEN so Electrification does not appear
         st.rerun()
 
 # ---------- KEN SEARCH PAGE ----------
@@ -130,7 +142,7 @@ elif st.session_state.page == "module_browser":
                     "final": "1"
                 }
             # Calculate overall MTE as sum of all times
-            total_time = sum(float(v["time"]) for v in st.session_state.results.values())
+            total_time = sum(float(v["time"]) for k, v in st.session_state.results.items())
             st.session_state.results["overall"] = f"{total_time}"
             st.success("MTE Calculated")
 
